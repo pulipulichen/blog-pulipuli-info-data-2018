@@ -1,9 +1,7 @@
-#csv_file_path = file.choose()
-csv_file_path = 'D:\\Desktop\\20180127 中位數比較SPSS\\Kruskal–Wallis test example - data.csv'
-
+csv_file_path = file.choose()
 timestamp = format(Sys.time(), "%m%d-%H%M")
-timestamp = '0000'
 
+options(width=120)
 if(!require(dplyr)){install.packages("dplyr")}
 if(!require(FSA)){install.packages("FSA")}
 if(!require(lattice)){install.packages("lattice")}
@@ -60,14 +58,20 @@ dev.off()
 
 ### Shapiro-Wilk normality test
 
-cat("\n### Shapiro-Wilk normality test\n", file=output_file_path, sep="\n", append=TRUE)
+cat("\n### Normality test\n", file=output_file_path, sep="\n", append=TRUE)
 
 Data.levels = split(Data, Data$group)
 for(i in seq(length(Data.levels))) {
+    group.n = length(Data.levels[[i]]$group)
     group.name = Data.levels[[i]]$group[1]
     cat(paste("Group: ", group.name, sep=''), file=output_file_path, sep="", append=TRUE)
-    shapiro.result = shapiro.test(Data.levels[[i]]$value)
-    cat(", W = ", shapiro.result$statistic, " p-value = ", shapiro.result$p.value, "\n" , file=output_file_path, sep="", append=TRUE)
+    if (group.n < 50) {
+        shapiro.result = shapiro.test(Data.levels[[i]]$value)
+        cat(", Shapiro-Wilk normality test W = ", shapiro.result$statistic, " p-value = ", shapiro.result$p.value, "\n" , file=output_file_path, sep="", append=TRUE)
+    } else {
+        ks.result = ks.test(Data.levels[[i]]$value, pnorm, mean(Data.levels[[i]]$value), sd(Data.levels[[i]]$value))
+        cat(", Kolmogorov-Smirnov normality test D = ", ks.result$statistic, " p-value = ", ks.result$p.value, "\n" , file=output_file_path, sep="", append=TRUE)
+    }
 }
 
 ### Heteroscedasticity test
@@ -82,7 +86,7 @@ is.heteroscedastic = (leveneTest.result$`Pr(>F)` <= 0.05)
 if (is.heteroscedastic) {
     cat("\nData are heteroscedastic. Excute Welch's anova.", file=output_file_path, sep="\n", append=TRUE)
 } else {
-    cat("\nData are homoscedasticity. Excute Kruskal–Wallis test.", file=output_file_path, sep="\n", append=TRUE)
+    cat("\nData are homoscedastic. Excute Kruskal–Wallis test.", file=output_file_path, sep="\n", append=TRUE)
 }
 
 # ----------------
@@ -100,7 +104,7 @@ cat("\n### Welch’s anova for unequal variances", out, file=output_file_path, s
 
 library(userfriendlyscience)
 out <- capture.output(oneway(Data$group, y = Data$value, posthoc = 'games-howell'))
-cat("\n### Games-Howell Post-Hoc Test\n", out, file=output_file_path, sep="\n", append=TRUE)
+cat("### Games-Howell Post-Hoc Test\n", out, file=output_file_path, sep="\n", append=TRUE)
 
 } else {
 
