@@ -11,6 +11,7 @@ if(!require(rcompanion)){install.packages("rcompanion")}
 if(!require(multcompView)){install.packages("multcompView")}
 if(!require(userfriendlyscience)){install.packages("userfriendlyscience")}
 if(!require(graphics)){install.packages("graphics")}
+if(!require(lsr)){install.packages("lsr")}
 
 csv_dir_path = dirname(csv_file_path)
 csv_file_name = sub(pattern = "(.*)\\..*$", replacement = "\\1", basename(csv_file_path))
@@ -30,7 +31,7 @@ Data = mutate(Data, group = factor(group, levels=unique(group)))
 library(FSA)
 
 out <- capture.output(Summarize(value ~ group, data = Data))
-cat("\n### Medians and descriptive statistics\n", out, file=output_file_path, sep="\n", append=TRUE)
+cat("\n### Descriptive statistics\n", out, file=output_file_path, sep="\n", append=TRUE)
 
 ### Graphing the results ###
   
@@ -124,14 +125,20 @@ cat("\n### ANOVA for equal variances\n", out, file=output_file_path, sep="\n", a
  
 #cat(paste("Eta squared: ", kruskal.result$statistic / (length(Data$group) - 1), "\n", sep=''), file=output_file_path, sep="\n", append=TRUE)
 
+aov.result <- aov(value ~ group, data = Data)
+
+library(lsr)
+eta.squared.result = etaSquared( aov.result )
+cat("\nEta squared: ", eta.squared.result[[1]], '\n', file=output_file_path, sep="", append=TRUE)
+
 cat("\n### Post Hoc Tests", file=output_file_path, sep="\n", append=TRUE)
 
-aov.result <- aov(value ~ group, data = Data)
-lsd.result <- capture.output(PostHocTest(aov.result, method="lsd"))
-hsd.result <- capture.output(PostHocTest(aov.result, method="hsd"))
+#lsd.result <- capture.output(PostHocTest(aov.result, method="lsd"))
+#hsd.result <- capture.output(PostHocTest(aov.result, method="hsd"))
 scheffe.result <- capture.output(PostHocTest(aov.result, method="scheffe"))
 
-cat(lsd.result, hsd.result, scheffe.result, file=output_file_path, sep="\n", append=TRUE)
+#cat(lsd.result, hsd.result, scheffe.result, file=output_file_path, sep="\n", append=TRUE)
+cat(scheffe.result, file=output_file_path, sep="\n", append=TRUE)
 
 }
 
