@@ -2,6 +2,8 @@ csv_file_path = file.choose()
 timestamp = format(Sys.time(), "%m%d-%H%M")
 
 options(width=120)
+options(repos = "https://cran.rstudio.com")
+if(!require(methods)){install.packages("methods")}
 if(!require(dplyr)){install.packages("dplyr")}
 if(!require(FSA)){install.packages("FSA")}
 if(!require(lattice)){install.packages("lattice")}
@@ -85,7 +87,7 @@ cat("\n### Test for Homogeneity of Variance\n", out, file=output_file_path, sep=
 
 is.heteroscedastic = (leveneTest.result$`Pr(>F)` <= 0.05)
 
-if (is.heteroscedastic) {
+if (isTRUE(is.heteroscedastic[1])) {
     cat("\nData are heteroscedastic. Excute Welch's anova.", file=output_file_path, sep="\n", append=TRUE)
 } else {
     cat("\nData are homoscedastic. Excute ANOVA.", file=output_file_path, sep="\n", append=TRUE)
@@ -93,52 +95,50 @@ if (is.heteroscedastic) {
 
 # ----------------
 
-if (is.heteroscedastic) {
+if (isTRUE(is.heteroscedastic[1])) {
 
-### Welch's anova for unequal variances
+    ### Welch's anova for unequal variances
 
-out <- capture.output(oneway.test(value ~ group,
-            data=Data,
-            var.equal=FALSE))
-cat("\n### Welch’s anova for unequal variances", out, file=output_file_path, sep="\n", append=TRUE)
+    out <- capture.output(oneway.test(value ~ group, data=Data, var.equal=FALSE))
+    cat('\n### Welch\'s anova for unequal variances', out, file=output_file_path, sep="\n", append=TRUE)
 
-### Performing the Games-Howell Test
+    ### Performing the Games-Howell Test
 
-library(userfriendlyscience)
-out <- capture.output(oneway(Data$group, y = Data$value, posthoc = 'games-howell'))
-cat("### Games-Howell Post-Hoc Test\n", out, file=output_file_path, sep="\n", append=TRUE)
+    library(userfriendlyscience)
+    out <- capture.output(oneway(Data$group, y = Data$value, posthoc = 'games-howell'))
+    cat("### Games-Howell Post-Hoc Test\n", out, file=output_file_path, sep="\n", append=TRUE)
 
 } else {
 
-### ANOVA
+    ### ANOVA
 
-library(graphics)
+    library(graphics)
 
-# fit a linear model to the data
-model <- lm(value ~ group, data = Data)
+    # fit a linear model to the data
+    model <- lm(value ~ group, data = Data)
 
-#run the ANOVA on the model
-anova.result = anova(model)
+    #run the ANOVA on the model
+    anova.result = anova(model)
 
-out <- capture.output(anova.result)
-cat("\n### ANOVA for equal variances\n", out, file=output_file_path, sep="\n", append=TRUE)
- 
-#cat(paste("Eta squared: ", kruskal.result$statistic / (length(Data$group) - 1), "\n", sep=''), file=output_file_path, sep="\n", append=TRUE)
+    out <- capture.output(anova.result)
+    cat("\n### ANOVA for equal variances\n", out, file=output_file_path, sep="\n", append=TRUE)
 
-aov.result <- aov(value ~ group, data = Data)
+    #cat(paste("Eta squared: ", kruskal.result$statistic / (length(Data$group) - 1), "\n", sep=''), file=output_file_path, sep="\n", append=TRUE)
 
-library(lsr)
-eta.squared.result = etaSquared( aov.result )
-cat("\nEta squared: ", eta.squared.result[[1]], '\n', file=output_file_path, sep="", append=TRUE)
+    aov.result <- aov(value ~ group, data = Data)
 
-cat("\n### Post Hoc Tests", file=output_file_path, sep="\n", append=TRUE)
+    library(lsr)
+    eta.squared.result = etaSquared( aov.result )
+    cat("\nEta squared: ", eta.squared.result[[1]], '\n', file=output_file_path, sep="", append=TRUE)
 
-#lsd.result <- capture.output(PostHocTest(aov.result, method="lsd"))
-#hsd.result <- capture.output(PostHocTest(aov.result, method="hsd"))
-scheffe.result <- capture.output(PostHocTest(aov.result, method="scheffe"))
+    cat("\n### Post Hoc Tests", file=output_file_path, sep="\n", append=TRUE)
 
-#cat(lsd.result, hsd.result, scheffe.result, file=output_file_path, sep="\n", append=TRUE)
-cat(scheffe.result, file=output_file_path, sep="\n", append=TRUE)
+    #lsd.result <- capture.output(PostHocTest(aov.result, method="lsd"))
+    #hsd.result <- capture.output(PostHocTest(aov.result, method="hsd"))
+    scheffe.result <- capture.output(PostHocTest(aov.result, method="scheffe"))
+
+    #cat(lsd.result, hsd.result, scheffe.result, file=output_file_path, sep="\n", append=TRUE)
+    cat(scheffe.result, file=output_file_path, sep="\n", append=TRUE)
 
 }
 

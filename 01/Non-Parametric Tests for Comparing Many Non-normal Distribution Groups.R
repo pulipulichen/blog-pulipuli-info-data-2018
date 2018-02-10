@@ -2,6 +2,8 @@ csv_file_path = file.choose()
 timestamp = format(Sys.time(), "%m%d-%H%M")
 
 options(width=120)
+options(repos = "https://cran.rstudio.com")
+if(!require(methods)){install.packages("methods")}
 if(!require(dplyr)){install.packages("dplyr")}
 if(!require(FSA)){install.packages("FSA")}
 if(!require(lattice)){install.packages("lattice")}
@@ -83,7 +85,7 @@ cat("\n### Test for Homogeneity of Variance\n", out, file=output_file_path, sep=
 
 is.heteroscedastic = (leveneTest.result$`Pr(>F)` <= 0.05)
 
-if (is.heteroscedastic) {
+if (isTRUE(is.heteroscedastic[1])) {
     cat("\nData are heteroscedastic. Excute Welch's anova.", file=output_file_path, sep="\n", append=TRUE)
 } else {
     cat("\nData are homoscedastic. Excute Kruskal–Wallis test.", file=output_file_path, sep="\n", append=TRUE)
@@ -91,47 +93,48 @@ if (is.heteroscedastic) {
 
 # ----------------
 
-if (is.heteroscedastic) {
+if (isTRUE(is.heteroscedastic[1])) {
 
-### Welch's anova for unequal variances
+    ### Welch's anova for unequal variances
 
-out <- capture.output(oneway.test(value ~ group,
-            data=Data,
-            var.equal=FALSE))
-cat("\n### Welch’s anova for unequal variances", out, file=output_file_path, sep="\n", append=TRUE)
+    out <- capture.output(oneway.test(value ~ group,
+                data=Data,
+                var.equal=FALSE))
+    cat('\n### Welch\'s anova for unequal variances', out, file=output_file_path, sep="\n", append=TRUE)
 
-### Performing the Games-Howell Test
+    ### Performing the Games-Howell Test
 
-library(userfriendlyscience)
-out <- capture.output(oneway(Data$group, y = Data$value, posthoc = 'games-howell'))
-cat("### Games-Howell Post-Hoc Test\n", out, file=output_file_path, sep="\n", append=TRUE)
+    library(userfriendlyscience)
+    out <- capture.output(oneway(Data$group, y = Data$value, posthoc = 'games-howell'))
+    cat("### Games-Howell Post-Hoc Test\n", out, file=output_file_path, sep="\n", append=TRUE)
 
 } else {
 
-### Kruskal–Wallis test
+    ### Kruskal–Wallis test
 
-kruskal.result = kruskal.test(value ~ group, data = Data)
-out <- capture.output(kruskal.result)
-cat("\n### Kruskal–Wallis test for equal variances", out, file=output_file_path, sep="\n", append=TRUE)
- 
-cat(paste("Eta squared: ", kruskal.result$statistic / (length(Data$group) - 1), "\n", sep=''), file=output_file_path, sep="\n", append=TRUE)
+    kruskal.result = kruskal.test(value ~ group, data = Data)
+    out <- capture.output(kruskal.result)
+    cat("\n### Kruskal–Wallis test for equal variances", out, file=output_file_path, sep="\n", append=TRUE)
 
-### Dunn test for multiple comparisons
+    cat(paste("Eta squared: ", kruskal.result$statistic / (length(Data$group) - 1), "\n", sep=''), file=output_file_path, sep="\n", append=TRUE)
 
-### Order groups by median
+    ### Dunn test for multiple comparisons
 
-Data$group = factor(Data$group, levels=levels(Data$group))
+    ### Order groups by median
 
-### Dunn test
+    Data$group = factor(Data$group, levels=levels(Data$group))
 
-library(FSA)
+    ### Dunn test
 
-PT = dunnTest(value ~ group,
-              data=Data,
-              method="bh")    # Can adjust p-values; 
-                              # See ?p.adjust for options 
-out <- capture.output(PT)
-cat("### Dunn test\n", out, file=output_file_path, sep="\n", append=TRUE)
+    library(FSA)
+
+    PT = dunnTest(value ~ group,
+                  data=Data,
+                  method="bh")    # Can adjust p-values; 
+                                  # See ?p.adjust for options 
+    out <- capture.output(PT)
+    cat("### Dunn test\n", out, file=output_file_path, sep="\n", append=TRUE)
+
 }
 
 message('Finish')
