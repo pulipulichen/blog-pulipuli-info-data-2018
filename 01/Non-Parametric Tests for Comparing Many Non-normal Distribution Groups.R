@@ -88,7 +88,7 @@ is.heteroscedastic = (leveneTest.result$`Pr(>F)` <= 0.05)
 if (isTRUE(is.heteroscedastic[1])) {
     cat("\nData are heteroscedastic. Excute Welch's anova.", file=output_file_path, sep="\n", append=TRUE)
 } else {
-    cat("\nData are homoscedastic. Excute Kruskal–Wallis test.", file=output_file_path, sep="\n", append=TRUE)
+    cat("\nData are homoscedastic. Excute Kruskal-Wallis test.", file=output_file_path, sep="\n", append=TRUE)
 }
 
 # ----------------
@@ -110,11 +110,11 @@ if (isTRUE(is.heteroscedastic[1])) {
 
 } else {
 
-    ### Kruskal–Wallis test
+    ### Kruskal-Wallis test
 
     kruskal.result = kruskal.test(value ~ group, data = Data)
     out <- capture.output(kruskal.result)
-    cat("\n### Kruskal–Wallis test for equal variances", out, file=output_file_path, sep="\n", append=TRUE)
+    cat("\n### Kruskal-Wallis test for equal variances", out, file=output_file_path, sep="\n", append=TRUE)
 
     cat(paste("Eta squared: ", kruskal.result$statistic / (length(Data$group) - 1), "\n", sep=''), file=output_file_path, sep="\n", append=TRUE)
 
