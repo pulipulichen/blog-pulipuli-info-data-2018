@@ -1,3 +1,5 @@
+
+
 function downloadFilesAsZip(filename, fileList, isAppendNumber) {
   
   /*
@@ -49,7 +51,9 @@ function downloadFilesAsZip(filename, fileList, isAppendNumber) {
       
       JSZipUtils.getBinaryContent(url, function (err, data) {
         if (err) {
-          console.log("Problem happened when download img: " + url)
+          console.log('Problem happened when download img ' + (i+1) + '/' + fileList.length + ': ' + url)
+          loop(i)
+          return 
         } else {
           zip.file(fileName, data, {binary: true});
           //deferred.resolve(zip);
@@ -58,14 +62,20 @@ function downloadFilesAsZip(filename, fileList, isAppendNumber) {
         setTimeout(() => {
           i++
           loop(i)
-        },0)
+        },10)
       });
     }
     else {
-      var generateOptions = {type:"blob"};
+	  var generateOptions = {type:"blob", 
+        compression: 'DEFLATE',
+        compressionOptions: {
+            level: 9
+        }
+      };
 
       zip.generateAsync(generateOptions).then(function(content) {
         saveAs(content, filename + '.zip');    
+        console.log('download finish: ' + filename + '.zip')
       });
     }
   }
