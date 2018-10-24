@@ -1,6 +1,5 @@
 
-
-function downloadFilesAsZip(filename, fileList, isAppendNumber) {
+function downloadFilesAsZip(filename, fileList, isAppendNumber, callback) {
   
   /*
   fileList = [
@@ -74,8 +73,15 @@ function downloadFilesAsZip(filename, fileList, isAppendNumber) {
       };
 
       zip.generateAsync(generateOptions).then(function(content) {
-        saveAs(content, filename + '.zip');    
-        console.log('download finish: ' + filename + '.zip')
+        let filesaver = saveAs(content, filename + '.zip');    
+        filesaver.onwriteend = function() { 
+        	console.log('download finish: ' + filename + '.zip')
+	        if (typeof(callback) === 'function') {
+	          setTimeout(function () {
+	            callback()
+	          }, 1 * 1000)
+	        }
+        }
       });
     }
   }
